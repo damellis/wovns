@@ -1,24 +1,31 @@
-var diameter = 15;
-var margin = 3;
+var x1 = 72;
+var y1 = 72;
 
-var dx = (diameter + margin);
-var dy = (diameter + margin);
-var x0 = dx * 2, x1 = x0 + dx * 2;
-var y0 = dy * 2, y1 = y0 + dy * 2;
+var padding = 3;
 
 var stripeNumX = 3;
 var stripeWidthX = [ 30, 10, 20 ];
-var stripeMarginX = [ 80, 50, 60 ];
-var stripeCenterX = [], stripeRepeatX;
-var stripeDraggedX = -1, stripeDraggedMarginX = -1, stripeDraggedWidthX = -1, dragStartX = -1;
+var stripeStartX = [ 80, 150, 260 ];
+var stripeDraggedX = -1, stripeDraggedStartX = -1, stripeDraggedWidthX = -1, dragStartX = -1;
 var stripeRightEdgeDraggedX = -1;
 var stripeLeftEdgeDraggedX = -1;
+var repeatX = 500;
 
 var stripeNumY = 2;
 var stripeWidthY = [ 10, 30 ];
-var stripeMarginY = [ 20, 20 ];
-var stripeStartY = [], stripeEndY = [], stripeRepeatY;
-var stripeDraggedY = -1, stripeDraggedMarginY = -1, dragStartY = -1;
+var stripeStartY = [ 20, 120 ];
+var stripeDraggedY = -1, dragStartY = -1;
+var repeatY = 500;
+
+function arrow(x0, y0, x1, y1, size0, size1)
+{
+  var theta = atan2(y1 - y0, x1 - x0);
+  line(x0, y0, x1, y1);
+  line(x0, y0, x0 + size0 * cos(theta + PI / 4), y0 + size0 * sin(theta + PI / 4));
+  line(x0, y0, x0 + size0 * cos(theta - PI / 4), y0 + size0 * sin(theta - PI / 4));
+  line(x1, y1, x1 - size1 * cos(theta + PI / 4), y1 - size1 * sin(theta + PI / 4));
+  line(x1, y1, x1 - size1 * cos(theta - PI / 4), y1 - size1 * sin(theta - PI / 4));
+}
 
 function setup()
 {
@@ -31,80 +38,93 @@ function windowResized() {
   drawPlaid();
 }
 
+function mouseClicked()
+{
+  print(mouseX + " " + mouseY);
+  if (mouseX >= x1 + repeatX - 15 - 6 && mouseX <= x1 + repeatX - 15 + 6 && mouseY >= 15 - 6 && mouseY <= 15 + 6) {
+    print("making new stripe");
+    stripeWidthX.push(12);
+    stripeStartX.push(repeatX - 15 - 6);
+    stripeNumX++;
+    drawPlaid();
+  }
+}
+
 function mousePressed()
 {
   dragStartX = -1; stripeDraggedX = -1; stripeRightEdgeDragged = -1; stripeLeftEdgeDragged = -1;
-  if (mouseY < y1) { // can only drag using the handles, not the whole stripe
-    dragStartX = mouseX;
+  dragStartX = mouseX - x1;
+  if (mouseY <= y1 - 19 && mouseY >= y1 - 36) { // can only drag using the handles, not the whole stripe
     for (var count = 0; count < stripeNumX; count++) {
       if (dragStartX >= stripeStartX[count] && dragStartX < stripeStartX[count] + stripeWidthX[count]) {
         stripeDraggedX = count;
-        stripeDraggedMarginX = stripeMarginX[count];
-      }
-      if(dragStartX <= stripeStartX[count] && dragStartX >= stripeStartX[count] - 6) {
-        stripeLeftEdgeDraggedX = count;
+        stripeDraggedStartX = stripeStartX[count];
         stripeDraggedWidthX = stripeWidthX[count];
-        stripeDraggedMarginX = stripeMarginX[count];
-      }
-      if(dragStartX >= stripeStartX[count] + stripeWidthX[count] && dragStartX <= stripeStartX[count] + stripeWidthX[count] + 6) {
-        stripeRightEdgeDraggedX = count;
-        stripeDraggedWidthX = stripeWidthX[count];
-        stripeDraggedMarginX = stripeMarginX[(count + 1) % stripeNumX];
       }
     }
-  }
-
-  dragStartY = -1; stripeDraggedY = -1;
-  if (mouseX < x1) { // can only drag using the handles, not the whole stripe
-    dragStartY = mouseY;
-    for (var count = 0; count < stripeNumY; count++) {
-      if (dragStartY >= stripeStartY[count] && dragStartY < stripeStartY[count] + stripeWidthY[count]) {
-        stripeDraggedY = count;
-        stripeDraggedMarginY = stripeMarginY[count];
+    if (stripeDraggedX != -1) {
+      stripeStartX.splice(stripeDraggedX, 1); stripeStartX.push(stripeDraggedStartX);
+      stripeWidthX.splice(stripeDraggedX, 1); stripeWidthX.push(stripeDraggedWidthX);
+      stripeDraggedX = stripeStartX.length - 1;
+    }
+  } else if (mouseY < y1 && mouseY >= y1 - 14) { // can only drag using the handles, not the whole stripe
+    for (var count = 0; count < stripeNumX; count++) {
+      if(dragStartX <= stripeStartX[count] && dragStartX >= stripeStartX[count] - 6) {
+        stripeLeftEdgeDraggedX = count;
+        stripeRightEdgeDraggedX = -1;
+        stripeDraggedWidthX = stripeWidthX[count];
+        stripeDraggedStartX = stripeStartX[count];
       }
+      if(dragStartX >= stripeStartX[count] + stripeWidthX[count] && dragStartX <= stripeStartX[count] + stripeWidthX[count] + 6) {
+        stripeLeftEdgeDraggedX = -1;
+        stripeRightEdgeDraggedX = count;
+        stripeDraggedWidthX = stripeWidthX[count];
+        stripeDraggedStartX = stripeStartX[count];
+      }
+    }
+    if (stripeLeftEdgeDraggedX != -1) {
+      stripeStartX.splice(stripeLeftEdgeDraggedX, 1); stripeStartX.push(stripeDraggedStartX);
+      stripeWidthX.splice(stripeLeftEdgeDraggedX, 1); stripeWidthX.push(stripeDraggedWidthX);
+      stripeLeftEdgeDraggedX = stripeStartX.length - 1;
+    }
+    if (stripeRightEdgeDraggedX != -1) {
+      stripeStartX.splice(stripeRightEdgeDraggedX, 1); stripeStartX.push(stripeDraggedStartX);
+      stripeWidthX.splice(stripeRightEdgeDraggedX, 1); stripeWidthX.push(stripeDraggedWidthX);
+      stripeRightEdgeDraggedX = stripeStartX.length - 1;
     }
   }
 }
 
 function mouseDragged()
 {
+  var mx = mouseX - x1;
   if (stripeDraggedX != -1) {
-    var prevstripeMarginX = stripeMarginX[stripeDraggedX];
-    stripeMarginX[stripeDraggedX] = stripeDraggedMarginX + (mouseX - dragStartX);
-    if (stripeMarginX[stripeDraggedX] < 0) stripeMarginX[stripeDraggedX] = 0;
-    if (prevstripeMarginX != stripeMarginX[stripeDraggedX]) drawPlaid();
+    var prevstripeStartX = stripeStartX[stripeDraggedX];
+    stripeStartX[stripeDraggedX] = stripeDraggedStartX + (mx - dragStartX);
+    if (stripeStartX[stripeDraggedX] < 0) stripeStartX[stripeDraggedX] = 0;
+    if (stripeStartX[stripeDraggedX] >= repeatX - stripeWidthX[stripeDraggedX]) stripeStartX[stripeDraggedX] = repeatX - stripeWidthX[stripeDraggedX] - 1;
+    if (prevstripeStartX != stripeStartX[stripeDraggedX]) drawPlaid();
   }
 
   if (stripeLeftEdgeDraggedX != -1) {
     var prevstripeWidthX = stripeWidthX[stripeLeftEdgeDraggedX];
-    var prevstripeMarginX = stripeMarginX[stripeDraggedX];
-    print(mouseX - dragStartX + " " + stripeWidthX[stripeLeftEdgeDraggedX] + " " + stripeMarginX[stripeLeftEdgeDraggedX]);
-    var delta = (mouseX - dragStartX > 0) ?
-      min(mouseX - dragStartX, stripeDraggedWidthX) :
-      max(mouseX - dragStartX, -stripeDraggedMarginX);
-    print(delta);
+    var prevstripeStartX = stripeStartX[stripeDraggedX];
+    var delta = (mx - dragStartX > 0) ? // if making the stripe smaller
+      min(mx - dragStartX, stripeDraggedWidthX) : // don't let it get smaller than 0
+      max(mx - dragStartX, -stripeDraggedStartX); // else, don't let it go off the edge
     stripeWidthX[stripeLeftEdgeDraggedX] = stripeDraggedWidthX - delta;
-    stripeMarginX[stripeLeftEdgeDraggedX] = stripeDraggedMarginX + delta;
+    stripeStartX[stripeLeftEdgeDraggedX] = stripeDraggedStartX + delta;
     if (delta != 0) drawPlaid();
   }
 
   if (stripeRightEdgeDraggedX != -1) {
     var prevstripeWidthX = stripeWidthX[stripeRightEdgeDraggedX];
-    var prevstripeMarginX = stripeMarginX[(stripeRightEdgeDraggedX + 1) % stripeNumX];
-    var delta = (mouseX - dragStartX < 0) ?
-      max(mouseX - dragStartX, -stripeDraggedWidthX) :
-      min(mouseX - dragStartX, stripeDraggedMarginX);
-    print(delta);
+    var prevstripeStartX = stripeStartX[stripeRightEdgeDraggedX];
+    var delta = (mx - dragStartX < 0) ? // if making the stripe smaller
+      max(mx - dragStartX, -stripeDraggedWidthX) : // don't let it get smaller than 0
+      min(mx - dragStartX, repeatX - stripeDraggedStartX - stripeDraggedWidthX);  // else, don't let it go off screen
     stripeWidthX[stripeRightEdgeDraggedX] = stripeDraggedWidthX + delta;
-    stripeMarginX[(stripeRightEdgeDraggedX + 1) % stripeNumX] = stripeDraggedMarginX - delta;
     if (delta != 0) drawPlaid();
-  }
-
-  if (stripeDraggedY != -1) {
-    var prevstripeMarginY = stripeMarginY[stripeDraggedY];
-    stripeMarginY[stripeDraggedY] = stripeDraggedMarginY + (mouseY - dragStartY);
-    if (stripeMarginY[stripeDraggedY] < 0) stripeMarginY[stripeDraggedY] = 0;
-    if (prevstripeMarginY != stripeMarginY[stripeDraggedY]) drawPlaid();
   }
 }
 
@@ -122,11 +142,9 @@ function drawPlaid()
   noStroke();
 
   i = x1; first = true;
-  stripeStartX = []; 
   while (i < width) {
     for (stripe = 0; stripe < stripeNumX; stripe++) {
-      i += stripeMarginX[stripe];
-      if (first) stripeStartX.push(i);
+      i += stripeStartX[stripe];
       noStroke();
       fill(255);
       rectMode(CORNER);
@@ -136,23 +154,22 @@ function drawPlaid()
 
         noStroke();
         fill(128);
-        rectMode(CORNER);
-        rect(0, -25, stripeWidthX[stripe], 11);
+        rectMode(CORNERS);
+        rect(-padding, -28 - 6 - padding, stripeWidthX[stripe] + padding, -28 + 6 + padding);
 
         stroke(0);
-        line(0, -20, stripeWidthX[stripe], -20);
-        line(0, -20, 3, -20 + 3);
-        line(0, -20, 3, -20 - 3);
-        line(stripeWidthX[stripe], -20, stripeWidthX[stripe] - 3, -20 + 3);
-        line(stripeWidthX[stripe], -20, stripeWidthX[stripe] - 3, -20 - 3);
+        arrow(0, -28, stripeWidthX[stripe], -28, 6, 6);
+
+        noStroke();
+        fill(0);
+        rectMode(CORNER);
+        rect(-6, -9, stripeWidthX[stripe] + 12, 8);
 
         stroke(128);
-
         line(0, -2, 0, -8);
         line(0, -5, -6, -5);
         line(-6, -5, -6 + 3, -5 + 3);
         line(-6, -5, -6 + 3, -5 - 3);
-
         line(stripeWidthX[stripe], -2, stripeWidthX[stripe], -8);
         line(stripeWidthX[stripe], -5, stripeWidthX[stripe] + 6, -5);
         line(stripeWidthX[stripe] + 6, -5, stripeWidthX[stripe] + 6 - 3, -5 + 3);
@@ -160,18 +177,16 @@ function drawPlaid()
 
         translate(-i, -y1);
       }
-      i += stripeWidthX[stripe];
+      i -= stripeStartX[stripe];
     }
-    if (first) stripeRepeatX = i;
+    i += repeatX;
     first = false;
   }
 
   j = y1; first = true;
-  stripeStartY = []; 
   while (j < height) {
     for (stripe = 0; stripe < stripeNumY; stripe++) {
-      j += stripeMarginY[stripe];
-      if (first) stripeStartY.push(j);
+      j += stripeStartY[stripe];
       noStroke();
       fill(255);
       rectMode(CORNER);
@@ -193,9 +208,21 @@ function drawPlaid()
 
         translate(-x1, -j);
       }
-      j += stripeWidthY[stripe];
+      j -= stripeStartY[stripe];
     }
-    if (first) stripeRepeatX = j;
+    j += repeatY;
     first = false;
   }
+
+  stroke(128);
+  line(x1 + repeatX, 0, x1 + repeatX, height);
+  line(0, y1 + repeatY, width, y1 + repeatY);
+
+  fill(128);
+  noStroke();
+  rectMode(CORNERS);
+  rect(x1 + repeatX - 15 - 6, 15 - 6, x1 + repeatX - 15 + 6, 15 + 6);
+  stroke(0);
+  line(x1 + repeatX - 15 - 3, 15, x1 + repeatX - 15 + 3, 15);
+  line(x1 + repeatX - 15, 15 - 3, x1 + repeatX - 15, 15 + 3);
 }
