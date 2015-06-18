@@ -54,9 +54,9 @@ function mousePressed()
 {
   dragStartX = -1; stripeDraggedX = -1; stripeRightEdgeDragged = -1; stripeLeftEdgeDragged = -1;
   dragStartX = mouseX - x1;
-  if (mouseY <= y1 - 19 && mouseY >= y1 - 36) { // can only drag using the handles, not the whole stripe
+  if (mouseY <= y1 - 17 && mouseY >= y1 - 36) { // can only drag using the handles, not the whole stripe
     for (var count = 0; count < stripeNumX; count++) {
-      if (dragStartX >= stripeStartX[count] && dragStartX < stripeStartX[count] + stripeWidthX[count]) {
+      if (dragStartX >= stripeStartX[count] + stripeWidthX[count] / 2 - 6 - padding && dragStartX < stripeStartX[count] + stripeWidthX[count] / 2 + 6 + padding) {
         stripeDraggedX = count;
         stripeDraggedStartX = stripeStartX[count];
         stripeDraggedWidthX = stripeWidthX[count];
@@ -67,15 +67,15 @@ function mousePressed()
       stripeWidthX.splice(stripeDraggedX, 1); stripeWidthX.push(stripeDraggedWidthX);
       stripeDraggedX = stripeStartX.length - 1;
     }
-  } else if (mouseY < y1 && mouseY >= y1 - 14) { // can only drag using the handles, not the whole stripe
+  } else if (mouseY < y1 && mouseY > y1 - 17) { // can only drag using the handles, not the whole stripe
     for (var count = 0; count < stripeNumX; count++) {
-      if(dragStartX <= stripeStartX[count] && dragStartX >= stripeStartX[count] - 6) {
+      if(dragStartX <= stripeStartX[count] && dragStartX >= stripeStartX[count] - 10) {
         stripeLeftEdgeDraggedX = count;
         stripeRightEdgeDraggedX = -1;
         stripeDraggedWidthX = stripeWidthX[count];
         stripeDraggedStartX = stripeStartX[count];
       }
-      if(dragStartX >= stripeStartX[count] + stripeWidthX[count] && dragStartX <= stripeStartX[count] + stripeWidthX[count] + 6) {
+      if(dragStartX >= stripeStartX[count] + stripeWidthX[count] && dragStartX <= stripeStartX[count] + stripeWidthX[count] + 10) {
         stripeLeftEdgeDraggedX = -1;
         stripeRightEdgeDraggedX = count;
         stripeDraggedWidthX = stripeWidthX[count];
@@ -152,28 +152,28 @@ function drawPlaid()
       if (first) {
         translate(i, y1);
 
-        noStroke();
+        stroke(0);
         fill(128);
-        rectMode(CORNERS);
-        rect(-padding, -28 - 6 - padding, stripeWidthX[stripe] + padding, -28 + 6 + padding);
+        ellipseMode(CORNER);
+        ellipse(stripeWidthX[stripe] / 2 - 6 - padding, -28 - 6 - padding, 2 * (6 + padding), 2 * (6 + padding));
 
         stroke(0);
-        arrow(0, -28, stripeWidthX[stripe], -28, 6, 6);
+        arrow(stripeWidthX[stripe] / 2 - 6, -28, stripeWidthX[stripe] / 2 + 6, -28, 4, 4);
 
-        noStroke();
-        fill(0);
-        rectMode(CORNER);
-        rect(-6, -9, stripeWidthX[stripe] + 12, 8);
+        fill(128);
+        ellipseMode(CENTER);
+        ellipse(-3, -10, 2 * (4 + padding), 2 * (4 + padding));
+        ellipse(stripeWidthX[stripe] + 3, -10, 2 * (4 + padding), 2 * (4 + padding));
 
-        stroke(128);
-        line(0, -2, 0, -8);
-        line(0, -5, -6, -5);
-        line(-6, -5, -6 + 3, -5 + 3);
-        line(-6, -5, -6 + 3, -5 - 3);
-        line(stripeWidthX[stripe], -2, stripeWidthX[stripe], -8);
-        line(stripeWidthX[stripe], -5, stripeWidthX[stripe] + 6, -5);
-        line(stripeWidthX[stripe] + 6, -5, stripeWidthX[stripe] + 6 - 3, -5 + 3);
-        line(stripeWidthX[stripe] + 6, -5, stripeWidthX[stripe] + 6 - 3, -5 - 3);
+        stroke(0);
+        line(0, -7, 0, -13);
+        line(0, -10, -6, -10);
+        line(-6, -10, -6 + 3, -10 + 3);
+        line(-6, -10, -6 + 3, -10 - 3);
+        line(stripeWidthX[stripe], -7, stripeWidthX[stripe], -13);
+        line(stripeWidthX[stripe], -10, stripeWidthX[stripe] + 6, -10);
+        line(stripeWidthX[stripe] + 6, -10, stripeWidthX[stripe] + 6 - 3, -10 + 3);
+        line(stripeWidthX[stripe] + 6, -10, stripeWidthX[stripe] + 6 - 3, -10 - 3);
 
         translate(-i, -y1);
       }
@@ -215,8 +215,10 @@ function drawPlaid()
   }
 
   stroke(128);
-  line(x1 + repeatX, 0, x1 + repeatX, height);
-  line(0, y1 + repeatY, width, y1 + repeatY);
+  line(x1, y1, x1, y1 + repeatY);
+  line(x1 + repeatX, y1, x1 + repeatX, y1 + repeatY);
+  line(x1, y1, x1 + repeatX, y1);
+  line(x1, y1 + repeatY, x1 + repeatX, y1 + repeatY);
 
   fill(128);
   noStroke();
