@@ -3,6 +3,12 @@ var y1 = 72;
 
 var padding = 3;
 
+var dragIconY = -28; // relative to top of stripe
+var dragIconRadius = 6; // not including padding
+
+var resizeIconX = 3, resizeIconY = -10; // relative to upper left or upper right corner of stripe
+var resizeIconRadius = 3; // not including padding
+
 var stripeNumX = 3;
 var stripeWidthX = [ 30, 10, 20 ];
 var stripeStartX = [ 80, 150, 260 ];
@@ -54,44 +60,41 @@ function mousePressed()
 {
   dragStartX = -1; stripeDraggedX = -1; stripeRightEdgeDragged = -1; stripeLeftEdgeDragged = -1;
   dragStartX = mouseX - x1;
-  if (mouseY <= y1 - 17 && mouseY >= y1 - 36) { // can only drag using the handles, not the whole stripe
-    for (var count = 0; count < stripeNumX; count++) {
-      if (dragStartX >= stripeStartX[count] + stripeWidthX[count] / 2 - 6 - padding && dragStartX < stripeStartX[count] + stripeWidthX[count] / 2 + 6 + padding) {
-        stripeDraggedX = count;
-        stripeDraggedStartX = stripeStartX[count];
-        stripeDraggedWidthX = stripeWidthX[count];
-      }
+  for (var count = 0; count < stripeNumX; count++) {
+    if (dist(mouseX, mouseY, x1 + stripeStartX[count] + stripeWidthX[count] / 2, y1 + dragIconY) <= (dragIconRadius + padding)) {
+      stripeDraggedX = count;
+      stripeDraggedStartX = stripeStartX[count];
+      stripeDraggedWidthX = stripeWidthX[count];
     }
-    if (stripeDraggedX != -1) {
-      stripeStartX.splice(stripeDraggedX, 1); stripeStartX.push(stripeDraggedStartX);
-      stripeWidthX.splice(stripeDraggedX, 1); stripeWidthX.push(stripeDraggedWidthX);
-      stripeDraggedX = stripeStartX.length - 1;
-    }
-  } else if (mouseY < y1 && mouseY > y1 - 17) { // can only drag using the handles, not the whole stripe
-    for (var count = 0; count < stripeNumX; count++) {
-      if(dragStartX <= stripeStartX[count] && dragStartX >= stripeStartX[count] - 10) {
+  }
+  if (stripeDraggedX != -1) {
+    stripeStartX.splice(stripeDraggedX, 1); stripeStartX.push(stripeDraggedStartX);
+    stripeWidthX.splice(stripeDraggedX, 1); stripeWidthX.push(stripeDraggedWidthX);
+    stripeDraggedX = stripeStartX.length - 1;
+  }
+  for (var count = 0; count < stripeNumX; count++) {
+    if(dist(mouseX, mouseY, x1 + stripeStartX[count] - resizeIconX, y1 + resizeIconY) <= (resizeIconRadius + padding)) {
         stripeLeftEdgeDraggedX = count;
         stripeRightEdgeDraggedX = -1;
         stripeDraggedWidthX = stripeWidthX[count];
         stripeDraggedStartX = stripeStartX[count];
-      }
-      if(dragStartX >= stripeStartX[count] + stripeWidthX[count] && dragStartX <= stripeStartX[count] + stripeWidthX[count] + 10) {
+    }
+    if(dist(mouseX, mouseY, x1 + stripeStartX[count] + stripeWidthX[count] + resizeIconX, y1 + resizeIconY) <= (resizeIconRadius + padding)) {
         stripeLeftEdgeDraggedX = -1;
         stripeRightEdgeDraggedX = count;
         stripeDraggedWidthX = stripeWidthX[count];
         stripeDraggedStartX = stripeStartX[count];
-      }
     }
-    if (stripeLeftEdgeDraggedX != -1) {
+  }
+  if (stripeLeftEdgeDraggedX != -1) {
       stripeStartX.splice(stripeLeftEdgeDraggedX, 1); stripeStartX.push(stripeDraggedStartX);
       stripeWidthX.splice(stripeLeftEdgeDraggedX, 1); stripeWidthX.push(stripeDraggedWidthX);
       stripeLeftEdgeDraggedX = stripeStartX.length - 1;
-    }
-    if (stripeRightEdgeDraggedX != -1) {
+  }
+  if (stripeRightEdgeDraggedX != -1) {
       stripeStartX.splice(stripeRightEdgeDraggedX, 1); stripeStartX.push(stripeDraggedStartX);
       stripeWidthX.splice(stripeRightEdgeDraggedX, 1); stripeWidthX.push(stripeDraggedWidthX);
       stripeRightEdgeDraggedX = stripeStartX.length - 1;
-    }
   }
 }
 
@@ -154,26 +157,24 @@ function drawPlaid()
 
         stroke(0);
         fill(128);
-        ellipseMode(CORNER);
-        ellipse(stripeWidthX[stripe] / 2 - 6 - padding, -28 - 6 - padding, 2 * (6 + padding), 2 * (6 + padding));
-
-        stroke(0);
-        arrow(stripeWidthX[stripe] / 2 - 6, -28, stripeWidthX[stripe] / 2 + 6, -28, 4, 4);
-
-        fill(128);
         ellipseMode(CENTER);
-        ellipse(-3, -10, 2 * (4 + padding), 2 * (4 + padding));
-        ellipse(stripeWidthX[stripe] + 3, -10, 2 * (4 + padding), 2 * (4 + padding));
 
-        stroke(0);
-        line(0, -7, 0, -13);
-        line(0, -10, -6, -10);
-        line(-6, -10, -6 + 3, -10 + 3);
-        line(-6, -10, -6 + 3, -10 - 3);
-        line(stripeWidthX[stripe], -7, stripeWidthX[stripe], -13);
-        line(stripeWidthX[stripe], -10, stripeWidthX[stripe] + 6, -10);
-        line(stripeWidthX[stripe] + 6, -10, stripeWidthX[stripe] + 6 - 3, -10 + 3);
-        line(stripeWidthX[stripe] + 6, -10, stripeWidthX[stripe] + 6 - 3, -10 - 3);
+        translate(stripeWidthX[stripe] / 2, 0);
+        ellipse(0, dragIconY, 2 * (dragIconRadius + padding), 2 * (dragIconRadius + padding));
+        arrow(-dragIconRadius, dragIconY, dragIconRadius, dragIconY, dragIconRadius * 2 / 3, dragIconRadius * 2 / 3);
+        translate(-stripeWidthX[stripe] / 2, 0);
+
+        ellipse(-resizeIconX, resizeIconY, 2 * (resizeIconRadius + padding), 2 * (resizeIconRadius + padding));
+        line(-resizeIconX + resizeIconRadius, resizeIconY + resizeIconRadius, -resizeIconX + resizeIconRadius, resizeIconY - resizeIconRadius);
+        line(-resizeIconX + resizeIconRadius, resizeIconY, -resizeIconX - resizeIconRadius, resizeIconY);
+        line(-resizeIconX - resizeIconRadius, resizeIconY, -resizeIconX, resizeIconY + resizeIconRadius);
+        line(-resizeIconX - resizeIconRadius, resizeIconY, -resizeIconX, resizeIconY - resizeIconRadius);
+
+        ellipse(stripeWidthX[stripe] + resizeIconX, resizeIconY, 2 * (resizeIconRadius + padding), 2 * (resizeIconRadius + padding));
+        line(stripeWidthX[stripe], resizeIconY + padding, stripeWidthX[stripe], resizeIconY - padding);
+        line(stripeWidthX[stripe], resizeIconY, stripeWidthX[stripe] + resizeIconX + resizeIconRadius, resizeIconY);
+        line(stripeWidthX[stripe] + resizeIconX + resizeIconRadius, resizeIconY, stripeWidthX[stripe] + resizeIconX, resizeIconY + resizeIconRadius);
+        line(stripeWidthX[stripe] + resizeIconX + resizeIconRadius, resizeIconY, stripeWidthX[stripe] + resizeIconX, resizeIconY - resizeIconRadius);
 
         translate(-i, -y1);
       }
